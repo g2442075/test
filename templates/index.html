@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 課題管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        
+        /* フラッシュメッセージ */
+        .flash {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .flash.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .flash.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* 追加フォーム */
+        .add-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .add-form h2 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #495057;
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* 課題一覧 */
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            color: #495057;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 1.3em;
+        }
+        
+        .task {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        
+        .task:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .task.completed {
+            background: #e8f5e9;
+            border-color: #c8e6c9;
+            opacity: 0.8;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .task-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .task.completed .task-title {
+            text-decoration: line-through;
+            color: #666;
+        }
+        
+        .task-date {
+            color: #666;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .task-date.urgent {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        
+        .task-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .btn-warning {
+            background-color: #ffc107;
+            color: #333;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .empty-state p {
+            font-size: 1.1em;
+        }
+        
+        /* レスポンシブ */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .task-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .task-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 課題管理システム</h1>
+        
+        <!-- フラッシュメッセージ -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <!-- 課題追加フォーム -->
+        <div class="add-form">
+            <h2>➕ 新しい課題を追加</h2>
+            <form action="/add" method="POST">
+                <div class="form-group">
+                    <label for="title">課題名 *</label>
+                    <input type="text" id="title" name="title" required 
+                           placeholder="例: プログラミング最終課題">
+                </div>
+                
+                <div class="form-group">
+                    <label for="due_date">締切日 *</label>
+                    <input type="date" id="due_date" name="due_date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">詳細（任意）</label>
+                    <textarea id="description" name="description" 
+                              placeholder="課題の詳細や注意事項など..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">追加する</button>
+            </form>
+        </div>
+        
+        <!-- 未完了の課題 -->
+        <div class="section">
+            <h2>📝 未完了の課題 ({{ incomplete_tasks|length }}件)</h2>
+            
+            {% if incomplete_tasks %}
+                {% for task in incomplete_tasks %}
+                <div class="task">
+                    <div class="task-header">
+                        <div class="task-title">{{ task.title }}</div>
+                        <div class="task-date {% if (task.due_date - today).days <= 3 %}urgent{% endif %}">
+                            📅 {{ task.due_date.strftime('%Y/%m/%d') }}
+                            {% set days = (task.due_date - today).days %}
+                            {% if days == 0 %}
+                                (今日まで！)
+                            {% elif days == 1 %}
+                                (明日まで)
+                            {% elif days > 0 %}
+                                (あと{{ days }}日)
+                            {% else %}
+                                (期限切れ)
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if task.description %}
+                    <div class="task-description">
+                        {{ task.description }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="task-actions">
+                        <a href="/toggle/{{ task.id }}">
+                            <button class="btn btn-success btn-small">✅ 完了</button>
+                        </a>
+                        <a href="/delete/{{ task.id }}" 
+                           onclick="return confirm('本当に削除しますか？')">
+                            <button class="btn btn-danger btn-small">🗑️ 削除</button>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>🎉 未完了の課題はありません！</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- 完了済みの課題 -->
+        {% if completed_tasks %}
+        <div class="section">
+            <h2>✅ 完了済み ({{ completed_tasks|length }}件)</h2>
+            
+            {% for task in completed_tasks %}
+            <div class="task completed">
+                <div class="task-header">
+                    <div class="task-title">{{ task.title }}</div>
+                    <div class="task-date">
+                        📅 {{ task.due_date.strftime('%Y/%m/%d') }}
+                    </div>
+                </div>
+                
+                {% if task.description %}
+                <div class="task-description">
+                    {{ task.description }}
+                </div>
+                {% endif %}
+                
+                <div class="task-actions">
+                    <a href="/toggle/{{ task.id }}">
+                        <button class="btn btn-warning btn-small">↩️ 未完了に戻す</button>
+                    </a>
+                    <a href="/delete/{{ task.id }}" 
+                       onclick="return confirm('本当に削除しますか？')">
+                        <button class="btn btn-danger btn-small">🗑️ 削除</button>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        // 今日の日付を最小値として設定
+        document.getElementById('due_date').min = new Date().toISOString().split('T')[0];
+        
+        // フラッシュメッセージを3秒後に自動で消す
+        setTimeout(() => {
+            const flashes = document.querySelectorAll('.flash');
+            flashes.forEach(flash => {
+                flash.style.opacity = '0';
+                setTimeout(() => flash.remove(), 300);
+            });
+        }, 3000);
+    </script>
+</body>
+</html>
